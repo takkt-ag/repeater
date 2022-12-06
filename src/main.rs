@@ -18,8 +18,10 @@ mod de;
 mod ser;
 
 use std::{
+    fs::File,
     io::{
         self,
+        BufReader,
         Write,
     },
     path::{
@@ -75,6 +77,18 @@ struct AccessLogRecord {
     required_time: f64,
 }
 
+#[derive(Debug, Deserialize)]
+struct JsonAccessLogRecord {
+    #[serde(rename = "_source")]
+    source: AccessLogRecord,
+}
+
+impl From<JsonAccessLogRecord> for AccessLogRecord {
+    fn from(json_record: JsonAccessLogRecord) -> Self {
+        json_record.source
+    }
+}
+
 #[derive(Debug)]
 struct RequestWithOffset {
     offset: Duration,
@@ -84,6 +98,15 @@ struct RequestWithOffset {
 
 impl AccessLogRecord {
     fn records_from_path<P: AsRef<Path>>(path: P) -> Result<Vec<AccessLogRecord>> {
+        match path.as_ref().extension().and_then(|ext| ext.to_str()) {
+            Some("csv") => Self::records_from_csv_path(path),
+            Some("json") => Self::records_from_json_path(path),
+            Some(ext) => anyhow::bail!("Unknown file extension: {}", ext),
+            None => anyhow::bail!("Can't determine file-type"),
+        }
+    }
+
+    fn records_from_csv_path<P: AsRef<Path>>(path: P) -> Result<Vec<AccessLogRecord>> {
         let reader = csv::Reader::from_path(path)?;
         let mut records = reader
             .into_deserialize::<AccessLogRecord>()
@@ -92,6 +115,15 @@ impl AccessLogRecord {
         records.sort_by(|a, b| a.timestamp.partial_cmp(&b.timestamp).unwrap());
 
         Ok(records)
+    }
+
+    fn records_from_json_path<P: AsRef<Path>>(path: P) -> Result<Vec<AccessLogRecord>> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        serde_json::Deserializer::from_reader(reader)
+            .into_iter::<JsonAccessLogRecord>()
+            .map(|item| item.map(Into::<AccessLogRecord>::into).map_err(Into::into))
+            .collect()
     }
 
     fn requests_from_path<P: AsRef<Path>>(
