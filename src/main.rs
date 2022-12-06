@@ -130,14 +130,17 @@ impl AccessLogRecord {
         path: P,
         client: &Client,
         scheme_and_host: &str,
+        time_factor: Option<f64>,
     ) -> Result<Vec<RequestWithOffset>> {
         let mut first_timestamp = None;
         Self::records_from_path(path)?
             .into_iter()
             .map(|record| {
+                let time_factor = time_factor.unwrap_or(1f64);
                 let offset = first_timestamp
                     .map(|first_timestamp| record.timestamp - first_timestamp)
-                    .unwrap_or_default();
+                    .unwrap_or_default()
+                    * time_factor;
                 first_timestamp.get_or_insert(record.timestamp);
 
                 client
@@ -214,13 +217,23 @@ struct Run {
     scheme_and_host: String,
     /// CSV-file to parse and GET-again.
     input_file: PathBuf,
+    /// Factor in which the requests should be fulfilled.
+    ///
+    /// 0.5 will mean the requests finish in half the time (double the load), whereas 2.0 would mean the requests finish
+    /// in double the time (half the load).
+    #[arg(long)]
+    time_factor: Option<f64>,
 }
 
 impl Run {
     async fn run(&self) -> Result<()> {
         let client = Arc::new(Client::new());
-        let requests =
-            AccessLogRecord::requests_from_path(&self.input_file, &client, &self.scheme_and_host)?;
+        let requests = AccessLogRecord::requests_from_path(
+            &self.input_file,
+            &client,
+            &self.scheme_and_host,
+            self.time_factor,
+        )?;
         if requests.is_empty() {
             anyhow::bail!("No records in provided file");
         }
