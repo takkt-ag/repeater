@@ -98,23 +98,23 @@ struct RequestWithOffset {
 
 impl AccessLogRecord {
     fn records_from_path<P: AsRef<Path>>(path: P) -> Result<Vec<AccessLogRecord>> {
-        match path.as_ref().extension().and_then(|ext| ext.to_str()) {
+        let mut records = match path.as_ref().extension().and_then(|ext| ext.to_str()) {
             Some("csv") => Self::records_from_csv_path(path),
             Some("json") => Self::records_from_json_path(path),
             Some(ext) => anyhow::bail!("Unknown file extension: {}", ext),
             None => anyhow::bail!("Can't determine file-type"),
-        }
+        }?;
+        records.sort_by(|a, b| a.timestamp.partial_cmp(&b.timestamp).unwrap());
+
+        Ok(records)
     }
 
     fn records_from_csv_path<P: AsRef<Path>>(path: P) -> Result<Vec<AccessLogRecord>> {
         let reader = csv::Reader::from_path(path)?;
-        let mut records = reader
+        reader
             .into_deserialize::<AccessLogRecord>()
             .map(|row| row.map_err(Into::into))
-            .collect::<Result<Vec<_>>>()?;
-        records.sort_by(|a, b| a.timestamp.partial_cmp(&b.timestamp).unwrap());
-
-        Ok(records)
+            .collect::<Result<Vec<_>>>()
     }
 
     fn records_from_json_path<P: AsRef<Path>>(path: P) -> Result<Vec<AccessLogRecord>> {
