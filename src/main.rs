@@ -245,7 +245,7 @@ impl Run {
                     let client = client.clone();
                     let pb = pb.clone();
                     async move {
-                        let result = Self::get(&*client, request_with_offset).await;
+                        let result = Self::get(&client, request_with_offset).await;
                         pb.inc(1);
                         result
                     }
@@ -263,7 +263,7 @@ impl Run {
             match response_details {
                 Ok(response_details) => {
                     serde_json::to_writer(&mut stdout, &response_details)?;
-                    write!(stdout, "\n")?;
+                    writeln!(stdout)?;
                 }
                 Err(err) => eprintln!("{}", err),
             }
