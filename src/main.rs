@@ -251,28 +251,39 @@ impl Run {
         let pb = ProgressBar::new(requests.len() as u64).with_style(ProgressStyle::with_template(
             "[{elapsed}] {wide_bar} {pos:>7}/{len:7}",
         )?);
-        let join_handles = requests
-            .into_iter()
-            .map(|request_with_offset| {
-                tokio::spawn({
-                    let client = client.clone();
-                    let pb = pb.clone();
-                    async move {
-                        let result = Self::get(&client, request_with_offset).await;
-                        pb.inc(1);
-                        result
+
+        let mut join_set = tokio::task::JoinSet::new();
+        for request_with_offset in requests {
+            join_set.spawn({
+                let client = client.clone();
+                let pb = pb.clone();
+                async move {
+                    let result = Self::get(&client, request_with_offset).await;
+                    pb.inc(1);
+                    result
+                }
+            });
+        }
+
+        let mut responses: Vec<Result<ResponseDetails>> = Vec::new();
+        let clean_exit = loop {
+            tokio::select! {
+                response = join_set.join_next() => {
+                    match response {
+                        Some(response) => responses.push(response?),
+                        None => {
+                            break true
+                        }
                     }
-                })
-            })
-            .collect::<Vec<_>>();
+                }
+                _ = tokio::signal::ctrl_c() => {
+                    break false
+                }
+            }
+        };
 
         let mut stdout = io::stdout().lock();
-        for response_details in futures::future::join_all(join_handles)
-            .await
-            .into_iter()
-            .map(|join_handle| join_handle.map_err(Into::into))
-            .collect::<Result<Vec<_>>>()?
-        {
+        for response_details in responses {
             match response_details {
                 Ok(response_details) => {
                     serde_json::to_writer(&mut stdout, &response_details)?;
@@ -281,7 +292,12 @@ impl Run {
                 Err(err) => eprintln!("{}", err),
             }
         }
-        Ok(())
+
+        if clean_exit {
+            Ok(())
+        } else {
+            anyhow::bail!("Aborted with CTRL-C")
+        }
     }
 
     async fn get(
