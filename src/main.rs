@@ -18,6 +18,7 @@ mod de;
 mod ser;
 
 use std::{
+    collections::HashMap,
     fs::File,
     io::{
         self,
@@ -70,9 +71,10 @@ struct AccessLogRecord {
         deserialize_with = "crate::de::kibana_timestamp_as_epoch"
     )]
     timestamp: Epoch,
+    domain_name: Option<String>,
     path: String,
     #[serde(rename = "params")]
-    parameters: String,
+    parameters: Option<String>,
     #[serde(rename = "target_processing_time")]
     required_time: f64,
 }
@@ -129,7 +131,8 @@ impl AccessLogRecord {
     fn requests_from_path<P: AsRef<Path>>(
         path: P,
         client: &Client,
-        scheme_and_host: &str,
+        scheme_and_host: &SchemaAndHostMapping,
+        hosts_to_ignore: &[String],
         time_factor: Option<f64>,
     ) -> Result<Vec<RequestWithOffset>> {
         let mut first_timestamp = None;
@@ -143,20 +146,38 @@ impl AccessLogRecord {
                     * time_factor;
                 first_timestamp.get_or_insert(record.timestamp);
 
-                client
-                    .get(format!(
-                        "{}{}{}",
-                        scheme_and_host, record.path, record.parameters
-                    ))
-                    .build()
-                    .map(|request| RequestWithOffset {
-                        offset,
-                        request,
-                        record,
-                    })
-                    .map_err(Into::into)
+                match record.domain_name {
+                    None => Ok(None),
+                    Some(ref domain_name) => {
+                        if hosts_to_ignore.contains(domain_name) {
+                            Ok(None)
+                        } else {
+                            scheme_and_host
+                                .get_scheme_and_host(domain_name)
+                                .and_then(|scheme_and_host| {
+                                    client
+                                        .get(format!(
+                                            "{}{}{}",
+                                            scheme_and_host,
+                                            record.path,
+                                            record.parameters.clone().unwrap_or_default()
+                                        ))
+                                        .build()
+                                        .map(|request| RequestWithOffset {
+                                            offset,
+                                            request,
+                                            record,
+                                        })
+                                        .map_err(Into::into)
+                                })
+                                .map(Some)
+                                .map_err(Into::into)
+                        }
+                    }
+                }
             })
             .collect::<Result<Vec<_>>>()
+            .map(|requests| requests.into_iter().flatten().collect())
     }
 }
 
@@ -195,7 +216,7 @@ impl Print {
                 record.timestamp,
                 format_args!("+{:>12}", offset),
                 record.path,
-                record.parameters
+                record.parameters.unwrap_or_default()
             );
             last_timestamp = Some(record.timestamp);
         }
@@ -210,15 +231,10 @@ impl Print {
 /// provided host.
 #[derive(Debug, Args)]
 struct Run {
-    /// Scheme and host to run the GET-requests against.
-    ///
-    /// Example: `https://my-alternative-service.internal`.
-    ///
-    /// The intention of this parameter is to enable replays against a different host than the one the requests were
-    /// originally run against. The most common use-case is taking production traffic and running it against a
-    /// non-production host.
-    #[arg(short, long)]
-    scheme_and_host: String,
+    #[command(flatten)]
+    scheme_and_host: SchemaAndHostMapping,
+    #[arg(long)]
+    hosts_to_ignore: Vec<String>,
     /// File to parse the GET-requests from.
     input_file: PathBuf,
     /// Time in which the requests should be fulfilled, as a factor of the original runtime
@@ -230,6 +246,47 @@ struct Run {
     time_factor: Option<f64>,
 }
 
+fn parse_mapping_file(path: &str) -> Result<HashMap<String, String>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    serde_json::from_reader(reader).map_err(Into::into)
+}
+
+#[derive(Debug, Args)]
+#[group(required = true, multiple = false)]
+struct SchemaAndHostMapping {
+    /// Scheme and host to run the GET-requests against.
+    ///
+    /// Example: `https://my-alternative-service.internal`.
+    ///
+    /// The intention of this parameter is to enable replays against a different host than the one the requests were
+    /// originally run against. The most common use-case is taking production traffic and running it against a
+    /// non-production host.
+    #[arg(short, long)]
+    scheme_and_host: Option<String>,
+    #[arg(long, value_parser = parse_mapping_file)]
+    scheme_and_host_mapping_file: Option<HashMap<String, String>>,
+}
+
+impl SchemaAndHostMapping {
+    fn get_scheme_and_host(&self, domain_name: &str) -> Result<String> {
+        let scheme_and_host = match &self.scheme_and_host {
+            Some(scheme_and_host) => scheme_and_host,
+            None => match &self.scheme_and_host_mapping_file {
+                Some(scheme_and_host_mapping_file) => scheme_and_host_mapping_file
+                    .get(domain_name)
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("No mapping found for domain_name: {}", domain_name)
+                    })?,
+                None => {
+                    anyhow::bail!("No scheme_and_host or scheme_and_host_mapping_file provided")
+                }
+            },
+        };
+        Ok(scheme_and_host.to_owned())
+    }
+}
+
 impl Run {
     async fn run(&self) -> Result<()> {
         let client = Arc::new(Client::new());
@@ -237,6 +294,7 @@ impl Run {
             &self.input_file,
             &client,
             &self.scheme_and_host,
+            &self.hosts_to_ignore,
             self.time_factor,
         )?;
         if requests.is_empty() {
@@ -364,6 +422,9 @@ async fn main() -> Result<()> {
 
     match &cli.command {
         Commands::Print(args) => args.run(),
-        Commands::Run(args) => args.run().await,
+        Commands::Run(args) => {
+            eprintln!("{:#?}", args);
+            args.run().await
+        }
     }
 }
