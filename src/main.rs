@@ -173,11 +173,11 @@ enum Commands {
     Run(Run),
 }
 
-/// Parse a provided Kibana CSV-export containing at least the fields `@timestamp', `path1 and `params`, and print every
+/// Parse the provided file containing at least the fields `@timestamp', `path` and `params`, and print every
 /// row as a separate, structured line, in order (by timestamp).
 #[derive(Debug, Args)]
 struct Print {
-    /// CSV-file to parse and print.
+    /// File to parse and print.
     input_file: PathBuf,
 }
 
@@ -206,7 +206,7 @@ impl Print {
 
 /// GET provided URLs again, with accurate relative timing.
 ///
-/// Parses the provided Kibana CSV-export and runs the discovered requests, with accurate relative timing, against the
+/// Parses the provided file and runs the discovered requests, with accurate relative timing, against the
 /// provided host.
 #[derive(Debug, Args)]
 struct Run {
@@ -215,7 +215,7 @@ struct Run {
     /// Example: `https://my-alternative-service.internal`.
     #[arg(short, long)]
     scheme_and_host: String,
-    /// CSV-file to parse and GET-again.
+    /// File to parse and GET-again.
     input_file: PathBuf,
     /// Factor in which the requests should be fulfilled.
     ///
