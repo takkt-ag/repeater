@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2023 KAISER+KRAFT EUROPA GmbH
+# Copyright 2024 TAKKT Industrial & Packaging GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-PATTERN_COPYRIGHT='^(//|#) Copyright [[:digit:]]+ KAISER\+KRAFT EUROPA GmbH'
+PATTERN_COPYRIGHT='^(//|#) Copyright [[:digit:]]+ TAKKT Industrial & Packaging GmbH'
 PATTERN_SPDX='^(//|#) SPDX-License-Identifier: Apache-2.0'
 ERRORS=0
 
@@ -33,6 +33,7 @@ done < <(\
   git ls-files -z -- \
     '*.rs' \
     '*.sh' \
+    'Dockerfile' \
 )
 
 if [[ "$ERRORS" -gt 0 ]]; then
