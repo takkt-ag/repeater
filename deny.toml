@@ -1,0 +1,24 @@
+[licenses]
+confidence-threshold = 0.93
+allow = [
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+]
+
+exceptions = [
+    # Unicode-DFS-2016 is a permissive license, if attribution in associated documentation is provided
+    { allow = ["Unicode-DFS-2016"], crate = "unicode-ident" },
+]
+
+[bans]
+wildcards = "deny"
+multiple-versions = "warn"
+
+[sources]
+unknown-registry = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+unknown-git = "deny"
+allow-git = []

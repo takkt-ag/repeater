@@ -128,6 +128,9 @@ The CSV-file may contain additional fields, but only the fields mentioned above 
 
 Repeater is licensed under the Apache License, Version 2.0, ([LICENSE](LICENSE) or <https://www.apache.org/licenses/LICENSE-2.0>).
 
+Repeater internally makes use of various open-source projects.
+You can find a full list of these projects and their licenses in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
 ### <a name="license-contribution"></a>Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in repeater by you, as defined in the Apache-2.0 license, shall be licensed under the Apache-2.0 license, without any additional terms or conditions.

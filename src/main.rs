@@ -161,7 +161,7 @@ impl AccessLogRecord {
 }
 
 #[derive(Debug, Parser)]
-#[command(author, version, about, propagate_version = true)]
+#[command(author, version, about, propagate_version = true, max_term_width = 100)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
