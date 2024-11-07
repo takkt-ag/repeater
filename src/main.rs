@@ -204,22 +204,27 @@ impl Print {
     }
 }
 
-/// GET provided URLs again, with accurate relative timing.
+/// Replay GET-requests for provided URLs, with accurate relative timing.
 ///
-/// Parses the provided file and runs the discovered requests, with accurate relative timing, against the
+/// The command parses the provided file and runs the discovered requests, with accurate relative timing, against the
 /// provided host.
 #[derive(Debug, Args)]
 struct Run {
     /// Scheme and host to run the GET-requests against.
     ///
     /// Example: `https://my-alternative-service.internal`.
+    ///
+    /// The intention of this parameter is to enable replays against a different host than the one the requests were
+    /// originally run against. The most common use-case is taking production traffic and running it against a
+    /// non-production host.
     #[arg(short, long)]
     scheme_and_host: String,
-    /// File to parse and GET-again.
+    /// File to parse the GET-requests from.
     input_file: PathBuf,
-    /// Factor in which the requests should be fulfilled.
+    /// Time in which the requests should be fulfilled, as a factor of the original runtime
     ///
-    /// 0.5 will mean the requests finish in half the time (double the load), whereas 2.0 would mean the requests finish
+    /// A factor smaller than 1 means the requests will finish sooner, e.g. with a factor of 0.5 in half the time
+    /// (double the load), whereas a factor higher than 1 means the requests will finish later, e.g. with a factor of 2
     /// in double the time (half the load).
     #[arg(long)]
     time_factor: Option<f64>,
