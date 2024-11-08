@@ -5,7 +5,7 @@ This page lists the licenses of the projects used in repeater.
 ## Overview of licenses
 
 - [Apache License 2.0](#Apache-2.0) (152)
-- [MIT License](#MIT) (40)
+- [MIT License](#MIT) (38)
 - [Unicode License v3](#Unicode-3.0) (19)
 - [BSD 3-Clause &quot;New&quot; or &quot;Revised&quot; License](#BSD-3-Clause) (2)
 - [Unicode License Agreement - Data Files and Software (2016)](#Unicode-DFS-2016) (1)
@@ -4110,6 +4110,7 @@ limitations under the License.
 
 - [hifitime 4.0.0]( https://github.com/nyx-space/hifitime )
 - [openssl 0.10.68]( https://github.com/sfackler/rust-openssl )
+- [shlex 1.3.0]( https://github.com/comex/rust-shlex )
 - [winapi-i686-pc-windows-gnu 0.4.0]( https://github.com/retep998/winapi-rs )
 - [winapi-x86_64-pc-windows-gnu 0.4.0]( https://github.com/retep998/winapi-rs )
 
@@ -4181,29 +4182,6 @@ you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
 http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-</pre>
-
-### <a name="Apache-2.0"></a>Apache License 2.0
-
-#### Used by
-
-- [shlex 1.3.0]( https://github.com/comex/rust-shlex )
-
-<pre>
-Copyright 2015 Nicholas Allegra (comex).
-
-Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
@@ -5087,20 +5065,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-
-</pre>
-
-### <a name="MIT"></a>MIT License
-
-#### Used by
-
-- [memchr 2.7.4]( https://github.com/BurntSushi/memchr )
-- [regex-automata 0.1.10]( https://github.com/BurntSushi/regex-automata )
-
-<pre>
-This project is dual-licensed under the Unlicense and MIT licenses.
-
-You may use this code under the terms of either license.
 
 </pre>
 
