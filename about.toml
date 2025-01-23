@@ -7,8 +7,5 @@ accepted = [
 ]
 no-clearly-defined = true
 
-[unicode-ident]
-accepted = ["Unicode-DFS-2016"]
-
 [hifitime]
 accepted = ["MPL-2.0"]
