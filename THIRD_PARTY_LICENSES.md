@@ -4,7 +4,7 @@ This page lists the licenses of the projects used in repeater.
 
 ## Overview of licenses
 
-- [Apache License 2.0](#Apache-2.0) (152)
+- [Apache License 2.0](#Apache-2.0) (148)
 - [MIT License](#MIT) (39)
 - [Unicode License v3](#Unicode-3.0) (20)
 - [BSD 3-Clause &quot;New&quot; or &quot;Revised&quot; License](#BSD-3-Clause) (1)
@@ -1530,13 +1530,9 @@ This page lists the licenses of the projects used in repeater.
 
 - [futures-channel 0.3.31]( https://github.com/rust-lang/futures-rs )
 - [futures-core 0.3.31]( https://github.com/rust-lang/futures-rs )
-- [futures-executor 0.3.31]( https://github.com/rust-lang/futures-rs )
-- [futures-io 0.3.31]( https://github.com/rust-lang/futures-rs )
-- [futures-macro 0.3.31]( https://github.com/rust-lang/futures-rs )
 - [futures-sink 0.3.31]( https://github.com/rust-lang/futures-rs )
 - [futures-task 0.3.31]( https://github.com/rust-lang/futures-rs )
 - [futures-util 0.3.31]( https://github.com/rust-lang/futures-rs )
-- [futures 0.3.31]( https://github.com/rust-lang/futures-rs )
 
 <pre>
                               Apache License
