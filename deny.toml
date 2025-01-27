@@ -9,8 +9,12 @@ allow = [
 ]
 
 exceptions = [
-    # Unicode-DFS-2016 is a permissive license, if attribution in associated documentation is provided
-    { allow = ["Unicode-DFS-2016"], crate = "unicode-ident" },
+    # MPL-2.0 is a copyleft license, but we can still fulfill its requirements if:
+    # - We include a copyright notice (which we do through `THIRD_PARTY_LICENSES.md`)
+    # - We include the full license (which we do through `THIRD_PARTY_LICENSES.md`)
+    # - We disclose source-code (which we do, since this tool is open-source)
+    # - We include instructions to obtain the source (which we do through `THIRD_PARTY_LICENSES.md`)
+    { allow = ["MPL-2.0"], crate = "hifitime"},
 ]
 
 [bans]
